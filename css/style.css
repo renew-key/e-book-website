@@ -1,0 +1,258 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+nav {
+  background-color: black;
+}
+
+nav ul {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  list-style-type: none;
+}
+
+nav ul li {
+  padding: 0.8rem;
+}
+
+
+nav a {
+  text-decoration: none;
+  color: white;
+}
+
+nav a:hover {
+  color: rgb(253, 253, 38);
+}
+
+#book-info {
+  width: 99vw;
+  margin: 0.5rem 1rem;
+}
+
+#book-info ul {
+  display: flex;
+  flex-wrap: wrap;
+
+}
+
+#book-info ul li {
+  width: 250px;
+  height: 380px;
+  margin: 0.5rem 1.5rem 1.5rem 1.5rem;
+  list-style-type: none;
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}
+
+#book-info ul li .image {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem;
+}
+
+#book-info ul li .image img {
+  width: 85%;
+}
+
+#book-info ul li h3 {
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.5rem;
+}
+
+#book-info ul li p {
+  text-align: center;
+}
+
+
+
+.book-title-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.book-title {
+  display: inline-block;
+  white-space: nowrap;
+
+}
+
+.book-title:hover {
+  animation: marquee 30s linear infinite;
+}
+
+.file {
+  position: relative;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  margin: 1.2rem;
+}
+
+.file>input[type='file'] {
+  display: none
+}
+
+
+
+.file>label {
+  font-size: 1rem;
+  font-weight: 300;
+  cursor: pointer;
+  outline: 0;
+  user-select: none;
+  border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+  border-style: solid;
+  border-radius: 4px;
+  border-width: 1px;
+  background-color: hsl(0, 0%, 100%);
+  color: hsl(0, 0%, 29%);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.file>label:hover {
+  border-color: hsl(0, 0%, 21%);
+}
+
+.file>label:active {
+  background-color: hsl(0, 0%, 96%);
+}
+
+.file>label>i {
+  padding-right: 5px;
+}
+
+.file--upload>label {
+  color: hsl(204, 86%, 53%);
+  border-color: hsl(204, 86%, 53%);
+}
+
+.file--upload>label:hover {
+  border-color: hsl(204, 86%, 53%);
+  background-color: hsl(204, 86%, 96%);
+}
+
+.file--upload>label:active {
+  background-color: hsl(204, 86%, 91%);
+}
+
+.file--uploading>label {
+  color: hsl(48, 100%, 67%);
+  border-color: hsl(48, 100%, 67%);
+}
+
+.file--uploading>label>i {
+  animation: pulse 5s infinite;
+}
+
+.file--uploading>label:hover {
+  border-color: hsl(48, 100%, 67%);
+  background-color: hsl(48, 100%, 96%);
+}
+
+.file--uploading>label:active {
+  background-color: hsl(48, 100%, 91%);
+}
+
+
+/* 文字滾動動畫 */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+#viewer {
+  position: relative;
+  width: 98%;
+  height: 550px;
+  border: 1px solid #ccc;
+  margin: 10px auto;
+}
+
+/* 右上角的關閉按鈕 */
+#closeButton {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  display: none;
+  z-index: 10;
+  /* 預設不顯示 */
+}
+
+.controls {
+  height: 70px;
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+button {
+  padding: 8px 16px;
+  margin: 5px;
+}
+
+
+
+
+
+/* CSS */
+.button-37 {
+  background-color: #13aa52;
+  border: 1px solid #13aa52;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Akzidenz Grotesk BQ Medium", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-37:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+
+@media (min-width: 768px) {
+  .button-37 {
+    padding: 10px 30px;
+  }
+}
+
+/* @media screen and (max-width:600px) {
+  #book-info ul li {
+    margin-bottom: 100px;
+  }
+} */

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>閱心堂</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Pacifico"
+  >
+  <link
+    rel="stylesheet"
+    href="./css/style.css"
+  >
+</head>
+
+<body>
+  <header id="header"></header>
+  <main>
+    <div
+      id="uploadSection"
+      class="file file--upload"
+    >
+      <label for="input-file">
+        <i class="material-icons">cloud_upload</i> Upload
+      </label>
+      <input
+        id="input-file"
+        type="file"
+      />
+    </div>
+    <div id="book-info">
+      <ul id="book-list">
+        <!-- 書籍清單將會動態生成 -->
+      </ul>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="./composables/insert.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.88/dist/epub.min.js"></script>
+
+  <script>
+    // 書籍路徑清單
+    const bookPaths = [
+      './book/01.epub',
+      './book/02.epub',
+      './book/03.epub',
+      './book/04.epub',
+      './book/05.epub',
+    ];
+
+    const bookListElement = document.getElementById('book-list');
+
+    // 載入書籍元資料
+    async function loadBookFromFile(file) {
+      const book = ePub(file);
+      const metadata = await book.loaded.metadata;
+      const title = metadata.title || "未知書名";
+      const author = metadata.creator || "未知作者";
+      const coverUrl = await book.coverUrl();
+
+      return { title, author, coverUrl };
+    }
+
+    // 動態生成書籍列表
+    async function displayBooks() {
+      bookListElement.innerHTML = ''; // 清空列表
+
+      for (const bookPath of bookPaths) {
+        const bookData = await loadBookFromPath(bookPath);
+        if (bookData) appendBookToList(bookData, bookPath);
+      }
+    }
+
+    // 插入書籍到清單（點擊後跳轉頁面）
+    function appendBookToList(bookData, bookPath) {
+      const bookItem = document.createElement("li");
+      bookItem.innerHTML = `
+        <a href="read.html?bookPath=${encodeURIComponent(bookPath)}">
+          <div class="image">
+            <img class="book-cover" alt="封面" src="${bookData.coverUrl || './default-cover.jpg'}" />
+          </div>
+          <h3 class="book-title-wrapper">
+            <span class="book-title">${bookData.title}</span>
+          </h3>
+          <p>${bookData.author}</p>
+        </a>
+      `;
+      bookListElement.appendChild(bookItem);
+    }
+
+    // 讀取書籍資料
+    async function loadBookFromPath(bookPath) {
+      try {
+        const response = await fetch(bookPath);
+        if (!response.ok) throw new Error('無法下載檔案');
+
+        const blob = await response.blob();
+        const file = new File([blob], bookPath, { type: 'application/epub+zip' });
+        return loadBookFromFile(file);
+      } catch (error) {
+        console.error('載入書籍時出錯:', error);
+        return null;
+      }
+    }
+
+    // 載入並顯示書籍
+    displayBooks();
+  </script>
+
+</body>
+
+</html>

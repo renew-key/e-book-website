@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>閱心堂</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css"
+  >
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Pacifico"
+  >
+  <link
+    rel="stylesheet"
+    href="./css/style.css"
+  >
+
+</head>
+
+<body>
+  <header id="header"></header>
+  <main>
+    <!-- 預設顯示上傳按鈕 -->
+    <div
+      id="uploadSection"
+      class="file file--upload"
+    >
+      <label for="input-file">
+        <i class="material-icons">cloud_upload</i> Upload
+      </label>
+      <input
+        id="input-file"
+        type="file"
+      />
+    </div>
+
+    <div id="viewer">
+      <button
+        id="closeButton"
+        style="display:none;"
+      >&times;</button> <!-- 關閉按鈕預設隱藏 -->
+    </div>
+
+    <div class="controls">
+      <button
+        id="prevPage"
+        class="button-37"
+        role="button"
+      >上一頁</button>
+      <button
+        id="nextPage"
+        class="button-37"
+        role="button"
+      >下一頁</button>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+
+  <script src="./composables/insert.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.88/dist/epub.min.js"></script>
+  <script>
+    let book, rendition;
+    const closeButton = document.getElementById("closeButton");
+    const viewer = document.getElementById("viewer");
+    const upload = document.getElementById('uploadSection');
+
+    // 取得 URL 參數中的 bookPath
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookPath = urlParams.get('bookPath'); // 取得 bookPath 參數
+
+    // 如果有 bookPath，則載入該書籍，並顯示關閉按鈕
+    if (bookPath) {
+      loadEpub(bookPath);
+      closeButton.style.display = 'block'; // 顯示關閉按鈕
+      upload.style.display = 'none';  // 隱藏上傳按鈕
+    }
+
+    // 載入 EPUB 文件
+    function loadEpub(bookPath) {
+
+      book = ePub(bookPath);  // 使用 EPUB.js 載入 EPUB 文件
+
+      rendition = book.renderTo("viewer", { width: "100%", height: "500px" });
+      rendition.display();
+      viewer.appendChild(closeButton);
+      closeButton.style.display = 'block';
+      // 強制設定文字從左到右
+      rendition.themes.default({
+        "body": {
+          "direction": "ltr",
+          "text-align": "left",
+          "z-index": 1, // 修正錯誤的 z-ndex -> z-index
+        },
+        "img": {
+          "max-width": "100% !important",
+          "height": "auto !important",
+          "display": "block",
+          "margin": "0 auto"
+        }
+      });
+
+    }
+
+    // 上一頁和下一頁控制
+    document.getElementById("prevPage").addEventListener("click", function () {
+      if (rendition) rendition.prev();
+    });
+
+    document.getElementById("nextPage").addEventListener("click", function () {
+      console.log(rendition)
+      if (rendition) rendition.next();
+    });
+
+    // 鍵盤左右鍵控制翻頁
+    document.addEventListener("keydown", function (event) {
+      if (!rendition) return;
+      if (event.key === "ArrowLeft") {
+        if (rendition) rendition.prev();
+      } else if (event.key === "ArrowRight") {
+        if (rendition) rendition.next();
+      }
+    });
+
+    // 上傳 EPUB 文件
+    document.getElementById("input-file").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        // 清空舊的 EPUB 顯示內容
+        viewer.innerHTML = "";
+        book = null;
+        rendition = null;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          // 在上傳文件後顯示關閉按鈕
+          upload.style.display = 'none'; // 隱藏上傳按鈕
+          loadEpub(e.target.result);
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    });
+
+    // 關閉按鈕事件
+    document.getElementById("closeButton").addEventListener("click", function () {
+      // 顯示上傳按鈕並清空 EPUB 顯示區域
+      upload.style.display = 'block';
+      viewer.innerHTML = ""; // 清空 viewer 內容
+
+      book = null;
+      rendition = null;
+      viewer.appendChild(closeButton);
+      closeButton.style.display = 'none';
+    });
+  </script>
+</body>
+
+</html>

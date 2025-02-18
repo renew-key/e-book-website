@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>閱心堂</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css"
+  >
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Pacifico"
+  >
+  <link
+    rel="stylesheet"
+    href="./css/style.css"
+  >
+</head>
+
+<body>
+  <header id="header"></header>
+  <main>
+    <!-- 書庫區域 -->
+    <div id="book-library">
+      <div
+        id="uploadSection"
+        class="file file--upload"
+      >
+        <label for="input-file">
+          <i class="material-icons">cloud_upload</i> Upload
+        </label>
+        <input
+          id="input-file"
+          type="file"
+        />
+      </div>
+      <div id="book-info">
+        <ul id="book-list">
+          <!-- 書籍清單將會動態生成 -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- EPUB 顯示區域 -->
+    <div
+      id="epubViewer"
+      style="display:none;"
+    >
+      <div id="viewer">
+        <button
+          id="closeButton"
+          style="display:none;"
+        >&times;</button> <!-- 關閉按鈕預設隱藏 -->
+      </div>
+
+      <div class="controls">
+        <button
+          id="prevPage"
+          class="button-37"
+          role="button"
+        >上一頁</button>
+        <button
+          id="nextPage"
+          class="button-37"
+          role="button"
+        >下一頁</button>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+
+  <script src="./composables/insert.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.88/dist/epub.min.js"></script>
+
+  <script>
+    const bookPaths = [];
+    const bookListElement = document.getElementById('book-list');
+    const bookLibraryElement = document.getElementById('book-library');
+    const epubViewerElement = document.getElementById('epubViewer');
+    const viewerElement = document.getElementById('viewer');
+    const closeButton = document.getElementById('closeButton');
+
+    let rendition = null;
+
+    // 載入書籍元資料
+    async function loadBookFromFile(file) {
+      const book = ePub(file);
+      const metadata = await book.loaded.metadata;
+      const title = metadata.title || "未知書名";
+      const author = metadata.creator || "未知作者";
+      const coverUrl = await book.coverUrl();
+
+      return { title, author, coverUrl };
+    }
+
+    // 動態生成書籍列表
+    async function displayBooks() {
+      bookListElement.innerHTML = ''; // 清空列表
+
+      for (const bookPath of bookPaths) {
+        const bookData = await loadBookFromPath(bookPath);
+        if (bookData) appendBookToList(bookData, bookPath);
+      }
+    }
+
+    // 插入書籍到清單（點擊後顯示 EPUB）
+    function appendBookToList(bookData, bookPath) {
+      const bookItem = document.createElement("li");
+      bookItem.innerHTML = `
+        <a href="javascript:void(0);" onclick="openEpub('${bookPath}')">
+          <div class="image">
+            <img class="book-cover" alt="封面" src="${bookData.coverUrl || './default-cover.jpg'}" />
+          </div>
+          <h3 class="book-title-wrapper">
+            <span class="book-title">${bookData.title}</span>
+          </h3>
+          <p>${bookData.author}</p>
+        </a>
+      `;
+      bookListElement.appendChild(bookItem);
+    }
+
+    // 讀取書籍資料
+    async function loadBookFromPath(bookPath) {
+      try {
+        const response = await fetch(bookPath);
+        if (!response.ok) throw new Error('無法下載檔案');
+
+        const blob = await response.blob();
+        const file = new File([blob], bookPath, { type: 'application/epub+zip' });
+        return loadBookFromFile(file);
+      } catch (error) {
+        console.error('載入書籍時出錯:', error);
+        return null;
+      }
+    }
+
+    // 打開並顯示 EPUB
+    function openEpub(bookPath) {
+      // 隱藏書庫區域，顯示 EPUB 內容區域
+      bookLibraryElement.style.display = 'none';
+      epubViewerElement.style.display = 'block';
+
+      const book = ePub(bookPath);
+      rendition = book.renderTo("viewer", { width: "100%", height: "500px" });
+      rendition.display();
+
+      // 設定文本方向和圖片樣式
+      rendition.themes.default({
+        "body": {
+          "direction": "ltr",
+          "text-align": "left",
+          "z-index": 1,
+        },
+        "img": {
+          "max-width": "100% !important",
+          "height": "auto !important",
+          "display": "block",
+          "margin": "0 auto"
+        }
+      });
+
+      // 顯示關閉按鈕
+      closeButton.style.display = 'block';
+    }
+
+    // 上一頁和下一頁控制
+    document.getElementById("prevPage").addEventListener("click", function () {
+      if (rendition) rendition.prev();
+    });
+
+    document.getElementById("nextPage").addEventListener("click", function () {
+      if (rendition) rendition.next();
+    });
+
+    // 鍵盤左右鍵控制翻頁
+    document.addEventListener("keydown", function (event) {
+      if (!rendition) return;
+      if (event.key === "ArrowLeft") {
+        if (rendition) rendition.prev();
+      } else if (event.key === "ArrowRight") {
+        if (rendition) rendition.next();
+      }
+    });
+
+    // 關閉 EPUB 視圖，返回書庫
+    closeButton.addEventListener("click", function () {
+      // 顯示書庫並清空 EPUB 顯示區域
+      bookLibraryElement.style.display = 'block';
+      epubViewerElement.style.display = 'none';
+      viewerElement.innerHTML = ""; // 清空 viewer 內容
+
+      // 隱藏關閉按鈕
+      closeButton.style.display = 'none';
+    });
+
+    // 載入並顯示書籍
+    displayBooks();
+  </script>
+</body>
+
+</html>
